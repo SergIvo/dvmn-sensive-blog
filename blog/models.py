@@ -3,6 +3,23 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 
 
+class PostQuerySet(models.QuerySet):
+    def popular(self):
+        return self.annotate(models.Count('likes')).order_by('-likes__count')
+
+    def fetch_with_comments_count(self):
+        """Allows to avoid increase of database queries in case of using multiple annotate() methods"""
+        post_ids = [post.id for post in self]
+        posts_with_comments = Post.objects.filter(id__in=post_ids).annotate(models.Count('comments'))
+        posts_ids_and_comments = posts_with_comments.values_list('id', 'comments__count')
+        count_for_id = dict(posts_ids_and_comments)
+
+        for post in self:
+            post.comments__count = count_for_id[post.id]
+
+        return list(self)
+
+
 class TagQuerySet(models.QuerySet):
     def popular(self):
         return self.annotate(models.Count('posts')).order_by('-posts__count')
@@ -35,6 +52,8 @@ class Post(models.Model):
 
     def get_absolute_url(self):
         return reverse('post_detail', args={'slug': self.slug})
+
+    objects = PostQuerySet.as_manager()
 
     class Meta:
         ordering = ['-published_at']
