@@ -47,12 +47,6 @@ class Post(models.Model):
         related_name='posts',
         verbose_name='Теги')
 
-    def __str__(self):
-        return self.title
-
-    def get_absolute_url(self):
-        return reverse('post_detail', args={'slug': self.slug})
-
     objects = PostQuerySet.as_manager()
 
     class Meta:
@@ -60,9 +54,22 @@ class Post(models.Model):
         verbose_name = 'пост'
         verbose_name_plural = 'посты'
 
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse('post_detail', args={'slug': self.slug})
+
 
 class Tag(models.Model):
     title = models.CharField('Тег', max_length=20, unique=True)
+
+    objects = TagQuerySet.as_manager()
+
+    class Meta:
+        ordering = ['title']
+        verbose_name = 'тег'
+        verbose_name_plural = 'теги'
 
     def __str__(self):
         return self.title
@@ -72,13 +79,6 @@ class Tag(models.Model):
 
     def get_absolute_url(self):
         return reverse('tag_filter', args={'tag_title': self.slug})
-
-    objects = TagQuerySet.as_manager()
-
-    class Meta:
-        ordering = ['title']
-        verbose_name = 'тег'
-        verbose_name_plural = 'теги'
 
 
 class Comment(models.Model):
