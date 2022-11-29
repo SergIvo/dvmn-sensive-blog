@@ -25,14 +25,14 @@ def serialize_tag(tag):
 
 
 def index(request):
-    prefetch_tags = Prefetch('tags', queryset=Tag.objects.annotate(Count('posts')))
+    tag_prefetch = Prefetch('tags', queryset=Tag.objects.annotate(Count('posts')))
     most_popular_posts = Post.objects.popular() \
-                             .prefetch_related('author', prefetch_tags)[:5] \
+                             .prefetch_related('author', tag_prefetch)[:5] \
         .fetch_with_comments_count()
 
     fresh_posts = Post.objects.annotate(Count('comments')) \
         .order_by('-published_at') \
-        .prefetch_related('author', prefetch_tags)
+        .prefetch_related('author', tag_prefetch)
     most_fresh_posts = reversed(fresh_posts[:5])
 
     popular_tags = Tag.objects.popular()
@@ -78,9 +78,9 @@ def post_detail(request, slug):
     popular_tags = Tag.objects.popular()
     most_popular_tags = popular_tags[:5]
 
-    prefetch_tags = Prefetch('tags', queryset=Tag.objects.annotate(Count('posts')))
+    tag_prefetch = Prefetch('tags', queryset=Tag.objects.annotate(Count('posts')))
     most_popular_posts = Post.objects.popular() \
-                             .prefetch_related('author', prefetch_tags)[:5] \
+                             .prefetch_related('author', tag_prefetch)[:5] \
         .fetch_with_comments_count()
 
     context = {
@@ -99,12 +99,12 @@ def tag_filter(request, tag_title):
     popular_tags = Tag.objects.popular()
     most_popular_tags = popular_tags[:5]
 
-    prefetch_tags = Prefetch('tags', queryset=Tag.objects.annotate(Count('posts')))
+    tag_prefetch = Prefetch('tags', queryset=Tag.objects.annotate(Count('posts')))
     most_popular_posts = Post.objects.popular() \
-                             .prefetch_related('author', prefetch_tags)[:5] \
+                             .prefetch_related('author', tag_prefetch)[:5] \
         .fetch_with_comments_count()
 
-    related_posts = tag.posts.annotate(Count('comments')).prefetch_related('author', prefetch_tags)[:20]
+    related_posts = tag.posts.annotate(Count('comments')).prefetch_related('author', tag_prefetch)[:20]
 
     context = {
         'tag': tag.title,
